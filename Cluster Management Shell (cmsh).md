@@ -534,3 +534,320 @@ cmsh -n -u -t -f /root/myscript.cmsh
 ---
 ---
 
+
+# **Cluster Management Shell (cmsh) – Levels, Modes, Help, and Commands**
+
+---
+
+## **1. Top-Level vs. Modes**
+
+* The **top-level** is what you see when you start `cmsh` without any options:
+
+```bash
+cmsh
+[mycluster]%
+```
+
+* To manage cluster resources efficiently, functionality is divided into **modes**. Each mode provides commands relevant to a specific aspect of cluster management.
+
+**Examples of Modes:**
+
+* `device` → Manage hardware devices like nodes, NICs, disks.
+* `network` → Manage networks.
+* `user` → Manage user accounts.
+* `configurationoverlay` → Manage configuration overlays.
+* `kubernetes` → Manage Kubernetes objects.
+
+---
+
+## **2. Objects Within Modes**
+
+* Within a mode, you can operate on **objects** (specific entities like a node, user, or role).
+* Use the `use` command to select an object:
+
+```bash
+[bright91->device]% use node001
+[bright91->device[node001]]%
+```
+
+* You can then manage the object's properties, e.g., IP, MAC, category.
+
+---
+
+## **3. Navigation Commands**
+
+| Command        | Purpose                                                             |
+| -------------- | ------------------------------------------------------------------- |
+| `exit` or `..` | Go up one level or exit cmsh if at top level                        |
+| `home` or `/`  | Return to top-level from any depth                                  |
+| `path`         | Show the current mode/object path (useful for scripting or aliases) |
+| `use <object>` | Select an object within a mode                                      |
+
+**Example:**
+
+```bash
+[bright91->device[node001]]% path
+home;device;use node001;
+```
+
+* You can copy this path and use it in a bash shell with `cmsh -c`:
+
+```bash
+cmsh -c 'device;use node001; list'
+```
+
+---
+
+## **4. Help System in cmsh**
+
+* Typing `help` at any level gives two lists:
+
+  1. **Top-level commands**
+  2. **Commands available at the current mode**
+
+**Example:**
+
+```bash
+[myheadnode]% session
+[myheadnode->session]% help
+============================ Top =============================
+alias ......................... Set aliases
+category ...................... Enter category mode
+...
+========================== session ===========================
+id ....................... Display current session id
+killsession .............. Kill a session
+list ..................... List active sessions
+```
+
+* To get **detailed help for a specific command**:
+
+```bash
+[myheadnode]% help run
+Name: run - Execute all commands in the given file(s)
+Usage: run [OPTIONS] <filename> [<filename2> ...]
+Options: -x, --echo
+         -q, --quit
+```
+
+---
+
+## **5. Command Syntax in cmsh**
+
+* A **cmsh command line** can include:
+
+```text
+<mode> <cmd> <arg1> <arg2> ... ; <mode> <cmd> <arg1> ...
+```
+
+* Semi-colons (`;`) separate multiple commands.
+* `<mode>` is optional if you are already inside that mode.
+
+**Examples:**
+
+```bash
+# Execute device status for head node while in network mode
+[bright91->network]% device status bright91; list
+bright91 ............ [ UP ]
+Name (key) Type Netmask Base Address ...
+externalnet External 16 192.168.1.0 ...
+
+# Enter device mode explicitly
+[bright91->network]% device; status bright91; list
+```
+
+---
+
+## **6. Top-Level Commands in cmsh**
+
+* Typing `help` at top level lists commands such as:
+
+| Command                  | Description                        |
+| ------------------------ | ---------------------------------- |
+| `alias`                  | Set or display aliases             |
+| `device`                 | Enter device mode                  |
+| `network`                | Enter network mode                 |
+| `user`                   | Enter user mode                    |
+| `list`                   | List objects or status             |
+| `run`                    | Execute cmsh commands from file    |
+| `exit` / `..`            | Exit mode or shell                 |
+| `home` / `/`             | Return to top level                |
+| `watch`                  | Execute command periodically       |
+| `quit`                   | Quit shell                         |
+| `connect` / `disconnect` | Connect or disconnect from cluster |
+| `color`                  | Manage console text colors         |
+| `events`                 | Manage events                      |
+
+> Every mode also supports the **top-level commands**, e.g., `alias`, `help`, `exit`.
+
+---
+
+## **7. Examples of Navigation and Execution**
+
+### **7.1 Entering a Mode and Using an Object**
+
+```bash
+[bright91]% device
+[bright91->device]% use node001
+[bright91->device[node001]]% list
+```
+
+### **7.2 Returning to Top Level**
+
+```bash
+[bright91->device[node001]]% home
+[bright91]%
+```
+
+### **7.3 Executing Commands Non-Interactively**
+
+```bash
+# Copy-pasted from path output earlier
+[bright91]% cmsh -c 'device;use node001; list'
+```
+
+### **7.4 Running Multiple Commands in One Line**
+
+```bash
+[bright91->network]% device status bright91; list
+```
+
+---
+
+## **8. Summary Tips**
+
+1. **Modes** = groups of commands for a specific area of cluster management.
+2. **Objects** = specific entities within a mode, selected via `use`.
+3. **`help`** shows available commands at top-level and mode-level.
+4. **Navigation:** `exit`/`..` goes up one level; `home`/`/` goes to top-level.
+5. **Non-interactive execution:** Use `cmsh -c` with the full mode/object path.
+
+---
+---
+
+
+1. **Top-level commands** – available in any mode.
+2. **Mode commands** – specific to each mode.
+3. **Object commands** – available once you select an object within a mode.
+
+Below is a detailed and organized reference for Bright Cluster Manager `cmsh` 9.1+.
+
+---
+
+# **1. Top-Level Commands (Available in Any Mode)**
+
+| Command            | Purpose                                                |
+| ------------------ | ------------------------------------------------------ |
+| `alias`            | Set or display command aliases.                        |
+| `unalias`          | Remove a previously defined alias.                     |
+| `help [command]`   | Display help for top-level or mode-specific command.   |
+| `exit` / `..`      | Exit current object or mode; at top-level, quits cmsh. |
+| `home` / `/`       | Return to top-level prompt from any mode depth.        |
+| `run`              | Execute commands from a file or string.                |
+| `export`           | Export aliases and dotfile settings.                   |
+| `list`             | List objects, devices, or status.                      |
+| `history`          | Display command history.                               |
+| `quit`             | Quit cmsh immediately.                                 |
+| `quitconfirmation` | Manage quit confirmation behavior.                     |
+| `time`             | Measure execution time of commands.                    |
+| `watch`            | Execute a command periodically and display output.     |
+
+---
+
+# **2. Modes (Enter a Mode Using `mode-name`)**
+
+Each mode contains **mode-specific commands** and may allow selection of objects.
+
+| Mode                         | Purpose / Key Commands                                                            |
+| ---------------------------- | --------------------------------------------------------------------------------- |
+| `device`                     | Manage nodes, switches, disks, NICs.<br>Commands: `use <node>`, `status`, `list`  |
+| `network`                    | Manage networks.<br>Commands: `list`, `status`, `connectivity`                    |
+| `user`                       | Manage users.<br>Commands: `add`, `remove`, `modify`, `list`                      |
+| `group`                      | Manage groups.<br>Commands: `add`, `remove`, `list`, `members`                    |
+| `nodegroup`                  | Manage node groups.<br>Commands: `add`, `remove`, `list`, `members`               |
+| `rack`                       | Manage racks.<br>Commands: `add`, `remove`, `list`, `nodes`                       |
+| `session`                    | Manage active sessions.<br>Commands: `list`, `id`, `killsession`                  |
+| `task`                       | Manage scheduled tasks.<br>Commands: `add`, `remove`, `list`, `run`               |
+| `softwareimage`              | Manage software images.<br>Commands: `add`, `remove`, `list`, `assign`            |
+| `profile`                    | Manage node/software profiles.<br>Commands: `add`, `remove`, `list`, `apply`      |
+| `configurationoverlay`       | Manage configuration overlays.<br>Commands: `add`, `remove`, `list`, `roles`      |
+| `ceph`                       | Manage Ceph clusters.<br>Commands: `status`, `list`, `mon`, `osd`                 |
+| `etcd`                       | Manage etcd services.<br>Commands: `status`, `list`, `cluster`                    |
+| `wlm`                        | Workload Manager (job scheduling).<br>Commands: `list`, `add`, `remove`, `status` |
+| `monitoring`                 | Monitor cluster health.<br>Commands: `list`, `status`, `metrics`                  |
+| `cloud`                      | Manage cloud resources.<br>Commands: `add`, `remove`, `list`, `status`            |
+| `cmjob`                      | Manage cluster jobs.<br>Commands: `add`, `remove`, `list`, `status`               |
+| `fspart`                     | Manage file system partitions.<br>Commands: `list`, `status`, `modify`            |
+| `keyvaluestore`              | Key/value storage management.<br>Commands: `set`, `get`, `delete`, `list`         |
+| `partition`                  | Job scheduling partitions.<br>Commands: `add`, `remove`, `list`                   |
+| `edgesite`                   | Edge site management.<br>Commands: `add`, `remove`, `list`                        |
+| `unmanagednodeconfiguration` | Manage unmanaged node configs.<br>Commands: `list`, `modify`                      |
+| `time`                       | Measure command execution time.                                                   |
+| `process`                    | Manage cluster processes.<br>Commands: `list`, `kill`, `status`                   |
+| `hierarchy`                  | Explore object hierarchy.<br>Commands: `list`, `tree`                             |
+| `groupingsyntax`             | Manage grouping defaults.<br>Commands: `list`, `modify`                           |
+| `cert`                       | Manage certificates.<br>Commands: `add`, `remove`, `list`, `status`               |
+| `main`                       | General management.<br>Commands: mode-specific and top-level commands             |
+
+---
+
+# **3. Object Commands (After `use <object>`)**
+
+Once inside a mode and object:
+
+| Command             | Purpose                                                  |
+| ------------------- | -------------------------------------------------------- |
+| `list`              | List properties or child objects of the selected object. |
+| `status`            | Show the current status of the object.                   |
+| `set <property>`    | Set a property of the object.                            |
+| `commit`            | Commit changes made to the object.                       |
+| `refresh`           | Refresh object data.                                     |
+| `delete` / `remove` | Remove the object (mode-dependent).                      |
+| `use <sub-object>`  | Select a child object for detailed management.           |
+| `help`              | Display commands available for the object.               |
+
+---
+
+# **4. Examples of cmsh Commands**
+
+### **4.1 Top-Level Command**
+
+```bash
+[bright91]% alias lv device list virtualnode
+```
+
+### **4.2 Enter a Mode**
+
+```bash
+[bright91]% device
+[bright91->device]%
+```
+
+### **4.3 Use an Object**
+
+```bash
+[bright91->device]% use node001
+[bright91->device[node001]]%
+```
+
+### **4.4 Run a Command Non-Interactively**
+
+```bash
+cmsh -c 'device;use node001; list'
+```
+
+### **4.5 Multiple Commands in One Line**
+
+```bash
+[bright91->network]% device status bright91; list
+```
+
+---
+
+# **5. Notes**
+
+1. **Top-level commands are global** – they work in any mode.
+2. **Modes are hierarchical** – enter a mode to access its objects.
+3. **Objects are selected via `use`** – after that, object-specific commands apply.
+4. **Aliases, run, and export** make automation easier.
+
