@@ -1268,3 +1268,19 @@ tmpfs 1.9G 0 1.9G 0% /sys/fs/cgroup
 tmpfs 374M 0 374M 0% /run/user/0
 ```
 
+```
+[root@mycluster ~]# cat .cm/cmsh/encrypt-node-disk.cmsh home
+device use ${1-node001}
+set disksetup /root/my-encrypted-node-disk.xml
+set revision ${2-test}
+commit
+
+[root@mycluster ~]# cmsh
+[mycluster]% encrypt-node-disk
+[mycluster->device[node001]]%
+
+[root@mycluster ~]# cmsh
+[mycluster]% encrypt-node-disk node002
+[mycluster->device[node002]]%
+```
+
