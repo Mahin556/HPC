@@ -851,3 +851,420 @@ cmsh -c 'device;use node001; list'
 3. **Objects are selected via `use`** – after that, object-specific commands apply.
 4. **Aliases, run, and export** make automation easier.
 
+---
+---
+
+# **1. Object Lifecycle Commands**
+
+| Command                    | Description                                                | Example                                                                 |                                |
+| -------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------ |
+| `use <object>`             | Make the specified object the current object.              | `[mycluster->device]% use node001`                                      |                                |
+| `add <type> <object> [IP]` | Create a new object in the current mode and drop into it.  | `[mycluster->device]% add physicalnode node100 10.141.0.100`            |                                |
+| `assign <object>`          | Assign an existing object to another object.               | `[...]->roles]% assign slurmclient`                                     |                                |
+| `unassign <object>`        | Remove assignment of an object from another object.        | `[...]->roles]% unassign slurmclient`                                   |                                |
+| `clear <property>`         | Reset a property of the object to its default.             | `[...->device*]% clear node101 mac`                                     |                                |
+| `clone <source> <target>`  | Duplicate an object and drop into it.                      | `[mycluster->device]% clone node100 node101`                            |                                |
+| `remove <object>`          | Mark an object for removal; not permanent until `commit`.  | `[mycluster->device]% remove node100`                                   |                                |
+| \`commit \[-w              | --wait]\`                                                  | Save all local changes to the cluster; `-w` waits for background tasks. | `[mycluster->device*]% commit` |
+| `refresh`                  | Undo local changes to the object.                          | `[mycluster->device*[node101*]]% refresh`                               |                                |
+| `modified`                 | List objects with uncommitted changes.                     | `[mycluster->device*]% modified`                                        |                                |
+| `validate`                 | Check consistency of object properties without committing. | `[mycluster->device*[node001*]]% validate`                              |                                |
+
+---
+
+# **2. Object Property Commands**
+
+| Command                         | Description                                                     | Example                                                              |
+| ------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `get <property>`                | Display a specific property of the current object.              | `[...->device[node101]]% get category`                               |
+| `set <property> <value>`        | Set a property of the current object.                           | `[...->device[node101*]]% set category default`                      |
+| `append <property> <value>`     | Add a value to a multi-valued property.                         | `[...->device[node001*]]% append powerdistributionunits apc01:5`     |
+| `removefrom <property> <value>` | Remove a value from a multi-valued property.                    | `[...->device[node001*]]% removefrom powerdistributionunits apc01:5` |
+| `show`                          | Display all properties and their current values for the object. | `[mycluster->device[node001]]% show`                                 |
+
+---
+
+# **3. Object Display & Organization**
+
+| Command                            | Description                                            | Example                                             |
+| ---------------------------------- | ------------------------------------------------------ | --------------------------------------------------- |
+| `list`                             | List all objects at the current mode or object level.  | `[mycluster->device]% list`                         |
+| `sort <property1> [property2 ...]` | Sort the list output by specified properties.          | `[mycluster->device]% sort type hostname`           |
+| `format <field1:width,...>`        | Specify which properties and widths to show in `list`. | `[bright91->device]% format hostname:[10-14],ip:15` |
+| `usedby <object>`                  | Show which objects reference the specified object.     | `[mycluster->device]% usedby apc01`                 |
+
+---
+
+# **4. Advanced Object Commands**
+
+| Command                              | Description                                    | Example                                                                         |
+| ------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------- |
+| `swap <object1> <object2>`           | Exchange names/attributes between two objects. | `[mycluster->device[mycluster]->interfaces]% swap eth0 eth1; commit`            |
+| `import [options] <source> <target>` | Clone roles from another object or overlay.    | `[bright91->device[node001]->roles]% import --overlay slurm-client slurmclient` |
+| `foreach <object-list> <commands>`   | Execute a set of commands on multiple objects. | `[mycluster->device]% foreach node001 node002 set category default`             |
+
+---
+
+# **5. Object Notes & Tips**
+
+1. **Asterisk `*` in prompt** – indicates an object has unsaved changes.
+2. **Commit sequence** – `add` → `set` → `commit` → object is persistent.
+3. **Property types** – strings, booleans (`yes/1/on/true`, `no/0/off/false`), MAC, IP.
+4. **List formatting** – flexible widths, ranges, and comma-separated multi-fields.
+5. **Cloning** – assigns best-effort IP addresses; manual inspection recommended.
+6. **Assign vs Add** – `assign` uses existing object, `add` creates a new object.
+7. **Remove options** – `-d|--data` deletes underlying data, `-a|--all` deletes all revisions (softwareimage mode).
+
+---
+---
+
+
+Here’s a structured summary and breakdown of the **advanced cmsh features** and cluster management techniques from the Bright Cluster Manager manual you shared. I’ve organized it for clarity so you can reference it quickly:
+
+---
+
+## **1. Cluster Partitioning & Base Partition**
+
+* **Cluster partitions:** Virtual clusters inside a physical cluster. Currently only **`base`** exists.
+* **Base partition:** Represents the entire physical cluster; contains global cluster properties.
+* **Accessing base partition:**
+
+```bash
+cmsh
+[myheadnode]% partition use base
+[myheadnode->partition[base]]% show
+```
+
+* Shows cluster-wide properties like `Cluster name`, `Headnode`, `Management network`, `Time servers`, etc.
+
+---
+
+## **2. Command Line Editing & History**
+
+* Uses **readline** library (similar to Bash):
+
+  * Tab completion.
+  * `<Ctrl>-r` or up/down arrows for history.
+* **History command:**
+
+```bash
+history          # show command history
+history -t       # show history with timestamps
+```
+
+* History saved in: `.cm/.cmshhistory`
+* Convert Unix epoch timestamp:
+
+```bash
+date -d @1615412046
+```
+
+---
+
+## **3. Mixing cmsh and Unix Commands**
+
+* Execute shell commands from cmsh using `!`:
+
+```bash
+!hostname -f
+!ssh node001
+```
+
+* Execute a command and use its output inside cmsh:
+
+```bash
+device use `hostname`
+```
+
+---
+
+## **4. Output & Input Redirection**
+
+* Redirect output:
+
+```bash
+device list > devices       # overwrite
+device status >> devices    # append
+device list | grep node001  # pipe to another command
+```
+
+* Redirect input from file:
+
+```bash
+cmsh < runthis
+cmsh -f runthis   # suppress echo of commands
+```
+
+---
+
+## **5. Time & Watch Commands**
+
+* **time**: Measure execution time of a cmsh command:
+
+```bash
+time ds node001
+```
+
+* **watch**: Run command periodically:
+
+```bash
+watch newnodes
+watch -n 3 status -n node001,node002
+```
+
+---
+
+## **6. Looping Over Objects**
+
+### **foreach**
+
+* Iterate over objects with a list of commands:
+
+```bash
+foreach node001 node002 (get hostname; status)
+```
+
+* **Advanced options:**
+
+  * Grouping: `-n`, `-g`, `-c`, `-r`, `-h`, `-l`, `-m`, `-u`, `-i`, `-t`
+  * Adding: `--clone`, `--add`
+  * Conditional: `--status`, `--quitonunknown`
+  * Looping: `*`, `--verbose`
+
+### **Node list syntax**
+
+* Adhoc: `node001,node003,node005`
+* Sequential: `node001..node004` or `node00[1-4]`
+* Extended sequential: `node[001-002]s[001-005]`
+* Rack-based: `r1n01,r1n02,r2n01`
+* Exclusion: `node001..node005,-node002..node003`
+* Stride: `node00[1..7:2]`
+* Mixed: `r1n001..r1n003,r2n003`
+* File: `^/some/filepath` (caret `^` reads nodes from a file)
+
+---
+
+## **7. Range Command**
+
+* Modal looping over nodes (like `foreach`) with interactive mode:
+
+```bash
+range -n node0[01-24]
+range -c default
+get revision
+set revision test
+roles; assign pbsproclient; commit
+```
+
+* Can run `pexec` across a range, but generally avoided.
+
+---
+
+## **8. Bookmarks**
+
+* Bookmarks = saved positions in cmsh hierarchy.
+* Commands:
+
+```bash
+bookmark            # set current location
+bookmark -l         # list bookmarks
+goto <bookmark>     # go to a bookmark
+bookmark -s mysaved # save bookmarks
+bookmark -x mysaved # load bookmarks
+```
+
+* Special bookmark `-` = previous location.
+
+---
+
+## **9. Renaming Nodes**
+
+* Simple rename:
+
+```bash
+rename node001..node003 test
+commit
+```
+
+* Zero-padded numbers automatically if needed: `test01`, `test02`
+* Format with custom digits: `test%04d`
+* Exact mapping:
+
+```bash
+rename node[001-005] test0[1,2,5-7]
+commit
+```
+
+* Skip nodes using colon `:` for patterns:
+
+```bash
+rename node[001-100:2] left[001-050]
+rename node[002-100:2] right[001-050]
+commit
+```
+
+* Dry-run: `--dry-run`
+* Refresh clears pending changes.
+
+---
+
+## **10. CMDaemon Environment Variables**
+
+* View environment variables for a device:
+
+```bash
+environment node001
+```
+
+* Export for bash scripts:
+
+```bash
+environment -e node001
+```
+
+* Example variables: `CMD_CLUSTERNAME`, `CMD_DEVICE_TYPE`, `CMD_CATEGORY`, `CMD_NODEGROUPS`, etc.
+
+---
+
+This covers **advanced cmsh usage, looping, range management, node renaming, and scripting with environment variables**.
+
+If you want, I can also create a **quick cheat sheet with all commands, options, and examples** for **cmsh advanced features**, so you can use it as a one-page reference.
+
+Do you want me to make that?
+
+---
+
+### To list all devices
+```bash
+cmsh
+[mycluster]% device
+[mycluster->device]% list
+Type          Hostname       MAC                 Category
+------------  -------------  -----------------  --------
+PhysicalNode  node001        00:E0:81:2E:F7:96  default
+PhysicalNode  node002        00:E0:81:2E:F7:97  default
+...
+```
+
+### To get hostname of device/node
+```bash
+cmsh
+[mycluster]% device
+[mycluster->device]% get hostname node001
+node001
+```
+
+### To get ip of device/node
+```bash
+cmsh
+[mycluster]% device
+[mycluster->device]% get ip node001
+10.141.0.1
+```
+
+### Get hostname and IP together using foreach
+```bash
+foreach node001 node002 (get hostname; get ip)
+node001
+10.141.0.1
+node002
+10.141.0.2
+```
+
+### Get hostname and IP for all nodes
+```bash
+foreach * (get hostname; get ip)
+foreach * (get hostname; get ip) > devices.txt
+foreach * (get hostname; get ip; status)
+```
+
+```bash
+# Start cmsh
+[root@headnode ~]# cmsh
+
+# Enter device mode for the head node
+[bright91]% device use bright91
+
+# Enter interfaces submode
+[bright91->device[bright91]]% interfaces
+
+# Select the interface for the internal network (eth1 in this example)
+[bright91->device[bright91]->interfaces]% use eth1
+
+# Add additional hostnames (space-separated)
+[bright91->device[bright91]->interfaces[eth1]]% set additionalhostnames test host2 host3
+
+# Commit changes to apply them
+[bright91->device*[bright91*]->interfaces*[eth1*]]% commit
+
+# Test the hostname resolution using ping (runs a shell command from cmsh)
+[bright91->device[bright91]->interfaces[eth1]]% !ping test
+
+This is done to manage hostnames and DNS for cluster nodes properly, rather than manually editing /etc/hosts. Here's why:
+
+Centralized name resolution
+
+Bright Cluster Manager (BCM) runs a DNS service on the internal network (internalnet).
+
+Adding hostnames via additionalhostnames ensures that all nodes in the cluster can resolve the hostnames automatically.
+
+If you edited /etc/hosts manually, you’d have to update it on every node, which is error-prone.
+
+Automatic updates
+
+When you commit in cmsh, the named (DNS) service is restarted automatically, so the new hostnames are immediately available.
+
+Cluster integration
+
+Any services, scripts, or jobs running on nodes can rely on consistent hostnames.
+
+For example, if you ssh or ping a node using its hostname, it will always resolve to the correct internal IP.
+
+Supports multiple hostnames per node
+
+You can assign aliases or extra names for nodes without touching system files.
+
+Example: test might be an alias for bright91.cm.cluster.
+
+Avoid conflicts with CMDaemon-managed files
+
+BCM manages parts of /etc/hosts automatically. Editing it manually can break cluster services. Using additionalhostnames keeps changes safe and supported.
+
+✅ In short: it’s about automated, consistent, and cluster-wide hostname management.
+```
+
+
+```bash
+[root@bright91 ~]# cmsh
+[bright91]% device use bright91
+[bright91->device[bright91]]% set hostname foobar
+[foobar->device*[foobar*]]% commit
+[foobar->device[foobar]]%
+Tue Jan 22 17:35:29 2013 [warning] foobar: Reboot required: Hostname changed
+[foobar->device[foobar]]% quit
+[root@bright91 ~]# sleep 30; hostname -f foobar.cm.cluster
+[root@bright91 ~]#
+```
+
+```bash
+[root@mycluster ~]# cat /root/.cm/cmsh/tablelist.cmsh
+list -d "|"
+[root@mycluster ~]# cat /root/.cm/cmsh/dfh.cmsh
+!df -h
+[root@mycluster ~]# cmsh
+[mycluster]% device
+[mycluster->device]% alias | egrep '(tablelist|dfh)'
+alias dfh run /root/.cm/cmsh/dfh.cmsh
+alias tablelist run /root/.cm/cmsh/tablelist.cmsh
+[mycluster->device]% list
+Type Hostname (key) MAC Category Ip ---------------------- ---------------- ------------------ ---------------- ---------------HeadNode mycluster FA:16:3E:B4:39:DB 10.141.255.254 PhysicalNode node001 FA:16:3E:D5:87:71 default 10.141.0.1 PhysicalNode node002 FA:16:3E:BE:05:FE default 10.141.0.2 [mycluster->device]% tablelist
+Type |Hostname (key) |MAC |Category |Ip ----------------------|----------------|------------------|----------------|---------------HeadNode |mycluster |FA:16:3E:B4:39:DB | |10.141.255.254 PhysicalNode |node001 |FA:16:3E:D5:87:71 |default |10.141.0.1 PhysicalNode |node002 |FA:16:3E:BE:05:FE |default |10.141.0.2 [mycluster->device]% dfh
+Filesystem Size Used Avail Use% Mounted on
+devtmpfs 1.8G 0 1.8G 0% /dev
+tmpfs 1.9G 0 1.9G 0% /dev/shm
+tmpfs 1.9G 33M 1.8G 2% /run
+tmpfs 1.9G 0 1.9G 0% /sys/fs/cgroup
+/dev/vdb1 25G 17G 8.7G 66% /
+tmpfs 374M 0 374M 0% /run/user/0
+```
+
