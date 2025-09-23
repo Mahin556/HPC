@@ -201,9 +201,26 @@ systemctl status slurmd.service
 • On all nodes:
 ```
 ls /cm/shared/slurm/lib/slurm | grep cgroup
----> output
 ```	
-	
+---> output
+```
+cgroup_v1.a
+cgroup_v1.la
+cgroup_v1.so
+cgroup_v2.a
+cgroup_v2.la
+cgroup_v2.so
+jobacct_gather_cgroup.a
+jobacct_gather_cgroup.la
+jobacct_gather_cgroup.so
+proctrack_cgroup.a
+proctrack_cgroup.la
+proctrack_cgroup.so
+task_cgroup.a
+task_cgroup.la
+task cgroup.so
+```
+
 • Check:
 ```
 sinfo
