@@ -368,5 +368,9 @@ Then mark for maintenance:
 ```bash
 scontrol update NodeName=node10 State=DRAIN Reason="Disk failure"
 ```
-
+```
+shosts | grep completing
+shosts | grep down
+shosts | grep draining
+```
 
