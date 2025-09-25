@@ -210,6 +210,14 @@ ipmitool raw <netfn> <cmd> [...] # Send raw IPMI command
 
 ---
 
-👉 This covers **all main `ipmitool` commands and subcommands** available in standard builds.
+```
+ipmitool -I lanplus -H 192.168.1.100 -U admin -P password chassis status
 
-Would you like me to also give you a **ready-to-use PDF cheat-sheet** (one-page, nicely organized by categories)?
+ipmitool -I lanplus -H 10.0.0.5 -U admin -P secret chassis power status
+
+ipmitool -I lanplus -H 10.0.0.5 -U admin -P secret chassis power cycle
+
+ipmitool lan print 1
+
+impitool fru print
+```
