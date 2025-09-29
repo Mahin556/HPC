@@ -9,7 +9,8 @@
 * `srun -N 2 -n 8 hostname` → run 8 tasks across 2 nodes.
 * `srun --pty bash` → start an interactive shell on allocated node(s).
 * `srun --jobid=12345 hostname` → run inside an existing job allocation.
-
+* `srun --nodelist=node01,node02 -n 4 hostname` -> run task on specific nodes.
+* `srun --exclude=node05,node06 -n 8 hostname` -> Exclude certain nodes.
 ---
 
 ### **Job Resource Requests**
