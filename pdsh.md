@@ -191,3 +191,167 @@ pexec -j -c default "cat /etc/hosts | grep cluster"
 ```bash
 pdsh -v -g computenode "systemctl status kubelet" | dshbak -c > /var/log/cluster_kubelet_status.log
 ```
+
+Got it 👍 — let me give you a **complete reference of `pdsh` commands, options, and examples** in one place.
+
+---
+
+# **`pdsh` (Parallel Distributed Shell) – Full Command Reference**
+
+`pdsh` lets you run a shell command on multiple nodes in parallel. Very useful in cluster and HPC administration.
+
+---
+
+## **Basic Syntax**
+
+```bash
+pdsh [OPTIONS] command
+```
+
+---
+
+## **Node Selection Options**
+
+| Option               | Meaning                                         |
+| -------------------- | ----------------------------------------------- |
+| `-w host1,host2,...` | Run on **explicit list of hosts**               |
+| `-w node[01-10]`     | Run on a **range of hosts**                     |
+| `-g group`           | Run on a **genders group** (like `computenode`) |
+| `-x host1,...`       | **Exclude** listed hosts                        |
+| `-A`                 | Run on **all nodes** (even if down)             |
+| `-v`                 | Run only on **nodes that are UP**               |
+
+---
+
+## **Execution Options**
+
+| Option      | Meaning                                                     |
+| ----------- | ----------------------------------------------------------- |
+| `-f n`      | Fanout: **limit number of parallel connections**            |
+| `-R <rcmd>` | Choose remote execution method (`ssh`, `exec`, `rsh`, etc.) |
+| `-t n`      | Timeout for command execution                               |
+| `-N`        | Disable hostname prefix in output                           |
+| `-l user`   | Run command as **different user**                           |
+| `-p`        | Print **target hosts only** (no execution)                  |
+| `-i`        | Expand hostnames to **canonical names**                     |
+| `-S`        | Print node name before command output                       |
+
+---
+
+## **Output Formatting**
+
+| Option | Meaning                             |
+| ------ | ----------------------------------- |
+| `-h`   | Suppress hostname output in results |
+| `-L`   | Label output with **node name**     |
+| `-q`   | Quiet mode, suppress error messages |
+| `-E`   | Redirect stderr separately          |
+| `-N`   | Output without hostnames (raw)      |
+
+---
+
+## **Common Examples**
+
+* Run command on specific nodes:
+
+```bash
+pdsh -w node01,node02 hostname
+```
+
+* Run on a range:
+
+```bash
+pdsh -w node[01-05] uptime
+```
+
+* Run on genders group:
+
+```bash
+pdsh -g computenode df -h
+```
+
+* Run on all UP nodes:
+
+```bash
+pdsh -v -A uname -r
+```
+
+* Exclude a node:
+
+```bash
+pdsh -w node[01-05] -x node03 hostname
+```
+
+* Limit concurrency (fanout = 5):
+
+```bash
+pdsh -f 5 -g computenode date
+```
+
+---
+
+## **With `dshbak` for Readable Output**
+
+* Basic coalescing:
+
+```bash
+pdsh -g computenode uname -r | dshbak -c
+```
+
+* Save outputs in per-host files:
+
+```bash
+pdsh -g computenode cat /etc/hosts | dshbak -d /tmp/hosts_output
+```
+
+---
+
+## **Running as Another User**
+
+```bash
+pdsh -l root -w node[01-05] "systemctl restart sshd"
+```
+
+---
+
+## **Mixing Options**
+
+* Run on compute nodes but exclude `node05`, and limit to 3 at a time:
+
+```bash
+pdsh -g computenode -x node05 -f 3 uptime
+```
+
+* Run across all nodes and show canonical names:
+
+```bash
+pdsh -A -i hostname
+```
+
+---
+
+## **Quick Cluster Admin Use Cases**
+
+* **Check kernel version on all nodes**:
+
+```bash
+pdsh -g computenode uname -r | dshbak -c
+```
+
+* **Check uptime on compute nodes**:
+
+```bash
+pdsh -g computenode uptime | dshbak -c
+```
+
+* **Restart a service everywhere**:
+
+```bash
+pdsh -g computenode "systemctl restart slurmd"
+```
+
+* **Copy a file to all nodes**:
+
+```bash
+pdcp -g computenode /etc/hosts /etc/hosts
+```
