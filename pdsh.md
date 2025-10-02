@@ -1,20 +1,6 @@
 ## **Chapter Overview: Day-to-Day Administration in Bright Cluster Manager**
 
 Bright Cluster Manager (BCM) provides tools and commands for **efficient cluster administration**. Administrators can manage nodes, configurations, images, hardware, and monitoring data systematically.
-
-### **Sections Covered**
-
-* **17.1**: Running **parallel shell commands** over the cluster using `pdsh` and `pexec`.
-* **17.2**: Contacting **Bright Cluster Manager support** and getting updates.
-* **17.3**: Implementing **backups** for BCM.
-* **17.4**: **Revision control** for images.
-* **17.5**: BIOS configuration through BCM.
-* **17.6**: Checking **hardware consistency** across nodes.
-* **17.7**: Accessing **Serial Over LAN (SOL) consoles**.
-* **17.8**: Handling large **monitoring datasets**.
-* **17.9**: **Node replacement** procedures.
-* **17.10**: Using **Ansible** for cluster configuration with collections and playbooks.
-
 ---
 
 ## **17.1 Parallel Shells: `pdsh` and `pexec`**
